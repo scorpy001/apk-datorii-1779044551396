@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Datorii</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #16161a;
+    --card: #1c1c22;
+    --border: #2a2a35;
+    --accent-red: #ff4d4d;
+    --accent-green: #2ecc71;
+    --accent-yellow: #f5c542;
+    --text: #f0f0f5;
+    --text-muted: #7a7a8c;
+    --text-dim: #4a4a5a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 20px 20px 0;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 10;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .app-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+  .app-title span { color: var(--accent-yellow); }
+
+  /* SUMMARY BAR */
+  .summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sum-box {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+  }
+  .sum-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .sum-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .sum-val.red { color: var(--accent-red); }
+  .sum-val.green { color: var(--accent-green); }
+  .sum-val.yellow { color: var(--accent-yellow); }
+
+  /* SEARCH */
+  .search-wrap {
+    padding: 14px 20px 0;
+  }
+  .search-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent-yellow); }
+  .search-input::placeholder { color: var(--text-dim); }
+
+  /* PERSON LIST */
+  .persons-list {
+    padding: 14px 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .person-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .person-card.expanded { border-color: var(--accent-yellow); }
+
+  .person-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    cursor: pointer;
+    gap: 12px;
+  }
+
+  .person-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 2px solid var(--border);
+  }
+
+  .person-info { flex: 1; min-width: 0; }
+  .person-name {
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .person-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .person-balance {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .person-balance.positive { color: var(--accent-green); }
+  .person-balance.negative { color: var(--accent-red); }
+  .person-balance.zero { color: var(--text-muted); }
+
+  /* EXPANDED DETAIL */
+  .person-detail {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .person-card.expanded .person-detail { display: block; }
+
+  .detail-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px 0;
+    margin-bottom: 10px;
+  }
+  .dstat {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .dstat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 3px; }
+  .dstat-val { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .dstat-val.green { color: var(--accent-green); }
+  .dstat-val.red { color: var(--accent-red); }
+
+  /* TRANSACTIONS */
+  .tx-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+  .tx-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .tx-dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  }
+  .tx-dot.sent { background: var(--accent-red); }
+  .tx-dot.received { background: var(--accent-green); }
+  .tx-info { flex: 1; min-width: 0; }
+  .tx-desc { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tx-date { font-size: 10px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+  .tx-amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .tx-amount.sent { color: var(--accent-red); }
+  .tx-amount.received { color: var(--accent-green); }
+  .tx-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 2px 4px; }
+  .tx-del:active { color: var(--accent-red); }
+
+  /* ACTION BUTTONS */
+  .action-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .btn-tx {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 0;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: opacity 0.15s;
+  }
+  .btn-tx:active { opacity: 0.7; }
+  .btn-tx.sent { background: rgba(255,77,77,0.15); color: var(--accent-red); border: 1px solid rgba(255,77,77,0.3); }
+  .btn-tx.received { background: rgba(46,204,113,0.15); color: var(--accent-green); border: 1px solid rgba(46,204,113,0.3); }
+
+  .btn-delete-person {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    color: var(--text-dim);
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    cursor: pointer;
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .btn-delete-person:active { border-color: var(--accent-red); color: var(--accent-red); }
+
+  /* EMPTY STATE */
+  .empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-dim);
+  }
+  .empty-icon { font-size: 42px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent-yellow);
+    color: #000;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(245,197,66,0.4);
+    font-weight: 700;
+    transition: transform 0.15s;
+    z-index: 100;
+  }
+  .fab:active { transform: scale(0.93); }
+
+  /* MODAL */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .overlay.active { display: flex; }
+  .modal {
+    background: var(--card);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 500px;
+    border-top: 1px solid var(--border);
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .modal-close {
+    margin-left: auto;
+    background: var(--surface);
+    border: none;
+    color: var(--text-muted);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .field-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+  .field-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field-input:focus { border-color: var(--accent-yellow); }
+
+  .type-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .type-btn {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .type-btn.active.sent { background: rgba(255,77,77,0.15); color: var(--accent-red); border-color: rgba(255,77,77,0.4); }
+  .type-btn.active.received { background: rgba(46,204,113,0.15); color: var(--accent-green); border-color: rgba(46,204,113,0.4); }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--accent-yellow);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 20px;
+    letter-spacing: 0.5px;
+    transition: opacity 0.15s;
+  }
+  .btn-submit:active { opacity: 0.8; }
+
+  .no-tx { font-size: 12px; color: var(--text-dim); text-align: center; padding: 10px 0; }
+
+  /* BADGE */
+  .badge {
+    font-size: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title">💸 Dato<span>rii</span></div>
+  </div>
+</div>
+
+<div class="summary" id="summaryBar">
+  <div class="sum-box">
+    <div class="sum-label">Am dat</div>
+    <div class="sum-val red" id="sumSent">0 RON</div>
+  </div>
+  <div class="sum-box">
+    <div class="sum-label">Am primit</div>
+    <div class="sum-val green" id="sumReceived">0 RON</div>
+  </div>
+  <div class="sum-box">
+    <div class="sum-label">Sold net</div>
+    <div class="sum-val yellow" id="sumNet">0 RON</div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <input class="search-input" type="text" id="searchInput" placeholder="🔍  Caută persoană..." oninput="renderPersons()">
+</div>
+
+<div class="persons-list" id="personsList"></div>
+
+<button class="fab" onclick="openAddPerson()">+</button>
+
+<!-- Modal adaugă persoană -->
+<div class="overlay" id="addPersonOverlay" onclick="closeOverlay(event,'addPersonOverlay')">
+  <div class="modal">
+    <div class="modal-title">
+      👤 Persoană nouă
+      <button class="modal-close" onclick="closeModal('addPersonOverlay')">✕</button>
+    </div>
+    <div class="field-label">Nume</div>
+    <input class="field-input" id="personName" type="text" placeholder="ex: Andrei M.">
+    <div class="field-label">Notă (opțional)</div>
+    <input class="field-input" id="personNote" type="text" placeholder="ex: prieten, coleg...">
+    <button class="btn-submit" onclick="addPerson()">Adaugă</button>
+  </div>
+</div>
+
+<!-- Modal adaugă tranzacție -->
+<div class="overlay" id="addTxOverlay" onclick="closeOverlay(event,'addTxOverlay')">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="txModalTitle">Adaugă tranzacție</span>
+      <button class="modal-close" onclick="closeModal('addTxOverlay')">✕</button>
+    </div>
+    <div class="field-label">Tip</div>
+    <div class="type-toggle">
+      <button class="type-btn sent active" id="typeSent" onclick="setTxType('sent')">↑ Am dat</button>
+      <button class="type-btn received" id="typeReceived" onclick="setTxType('received')">↓ Am primit</button>
+    </div>
+    <div class="field-label">Sumă (RON)</div>
+    <input class="field-input" id="txAmount" type="number" min="0" step="0.01" placeholder="0.00">
+    <div class="field-label">Descriere (opțional)</div>
+    <input class="field-input" id="txDesc" type="text" placeholder="ex: bani de benzina, imprumut...">
+    <div class="field-label">Data</div>
+    <input class="field-input" id="txDate" type="date">
+    <button class="btn-submit" onclick="addTransaction()">Salvează</button>
+  </div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem('datorii_v2') || '{"persons":[]}');
+let currentPersonId = null;
+let currentTxType = 'sent';
+
+function save() {
+  localStorage.setItem('datorii_v2', JSON.stringify(data));
+}
+
+function formatRon(val) {
+  return (val % 1 === 0 ? val.toFixed(0) : val.toFixed(2)) + ' RON';
+}
+
+function calcBalance(person) {
+  let sent = 0, received = 0;
+  person.transactions.forEach(t => {
+    if (t.type === 'sent') sent += t.amount;
+    else received += t.amount;
+  });
+  return { sent, received, net: received - sent };
+}
+
+function updateSummary() {
+  let totalSent = 0, totalReceived = 0;
+  data.persons.forEach(p => {
+    const b = calcBalance(p);
+    totalSent += b.sent;
+    totalReceived += b.received;
+  });
+  const net = totalReceived - totalSent;
+  document.getElementById('sumSent').textContent = formatRon(totalSent);
+  document.getElementById('sumReceived').textContent = formatRon(totalReceived);
+  const netEl = document.getElementById('sumNet');
+  netEl.textContent = formatRon(Math.abs(net));
+  netEl.className = 'sum-val ' + (net > 0 ? 'green' : net < 0 ? 'red' : 'yellow');
+}
+
+function renderPersons() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const list = document.getElementById('personsList');
+  const filtered = data.persons.filter(p => p.name.toLowerCase().includes(q));
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">${data.persons.length === 0 ? 'Nicio persoană adăugată încă.<br>Apasă + pentru a începe.' : 'Nicio persoană găsită.'}</div></div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const b = calcBalance(p);
+    const netClass = b.net > 0 ? 'positive' : b.net < 0 ? 'negative' : 'zero';
+    const netLabel = b.net > 0 ? `+${formatRon(b.net)}` : b.net < 0 ? `-${formatRon(Math.abs(b.net))}` : '0 RON';
+    const netDesc = b.net > 0 ? 'are de dat' : b.net < 0 ? 'am de dat' : 'chit';
+    const initials = p.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+    const isExpanded = p.expanded ? 'expanded' : '';
+    const avatarColor = stringToColor(p.name);
+
+    const txRows = p.transactions.slice().reverse().map(t => `
+      <div class="tx-item">
+        <div class="tx-dot ${t.type}"></div>
+        <div class="tx-info">
+          <div class="tx-desc">${t.desc || (t.type === 'sent' ? 'Am dat' : 'Am primit')}</div>
+          <div class="tx-date">${t.date}</div>
+        </div>
+        <div class="tx-amount ${t.type}">${t.type === 'sent' ? '-' : '+'}${formatRon(t.amount)}</div>
+        <button class="tx-del" onclick="deleteTx('${p.id}','${t.id}');event.stopPropagation()">🗑</button>
+      </div>
+    `).join('');
+
+    return `
+      <div class="person-card ${isExpanded}" id="card-${p.id}">
+        <div class="person-header" onclick="togglePerson('${p.id}')">
+          <div class="person-avatar" style="color:${avatarColor};border-color:${avatarColor}40">${initials}</div>
+          <div class="person-info">
+            <div class="person-name">${p.name}${p.note ? `<span class="badge">${p.note}</span>` : ''}</div>
+            <div class="person-sub">${p.transactions.length} tranzacții · ${netDesc}</div>
+          </div>
+          <div class="person-balance ${netClass}">${netLabel}</div>
+        </div>
+        <div class="person-detail">
+          <div class="detail-stats">
+            <div class="dstat"><div class="dstat-label">Am dat</div><div class="dstat-val red">${formatRon(b.sent)}</div></div>
+            <div class="dstat"><div class="dstat-label">Am primit</div><div class="dstat-val green">${formatRon(b.received)}</div></div>
+          </div>
+          <div class="tx-list">${txRows || '<div class="no-tx">Nicio tranzacție</div>'}</div>
+          <div class="action-row">
+            <button class="btn-tx sent" onclick="openAddTx('${p.id}','sent')">↑ Am dat</button>
+            <button class="btn-tx received" onclick="openAddTx('${p.id}','received')">↓ Am primit</button>
+          </div>
+          <button class="btn-delete-person" onclick="deletePerson('${p.id}')">Șterge persoana</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  updateSummary();
+}
+
+function stringToColor(str) {
+  const colors = ['#f5c542','#ff7eb3','#7ec8e3','#a78bfa','#34d399','#fb923c','#f472b6','#60a5fa'];
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h);
+  return colors[Math.abs(h) % colors.length];
+}
+
+function togglePerson(id) {
+  const p = data.persons.find(x => x.id === id);
+  p.expanded = !p.expanded;
+  save();
+  renderPersons();
+}
+
+function openAddPerson() {
+  document.getElementById('personName').value = '';
+  document.getElementById('personNote').value = '';
+  document.getElementById('addPersonOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('personName').focus(), 300);
+}
+
+function addPerson() {
+  const name = document.getElementById('personName').value.trim();
+  if (!name) return;
+  data.persons.push({ id: Date.now().toString(), name, note: document.getElementById('personNote').value.trim(), transactions: [], expanded: false });
+  save();
+  closeModal('addPersonOverlay');
+  renderPersons();
+}
+
+function deletePerson(id) {
+  if (!confirm('Ștergi persoana și toate tranzacțiile?')) return;
+  data.persons = data.persons.filter(p => p.id !== id);
+  save();
+  renderPersons();
+}
+
+function openAddTx(personId, type) {
+  currentPersonId = personId;
+  const p = data.persons.find(x => x.id === personId);
+  document.getElementById('txModalTitle').textContent = p.name;
+  setTxType(type);
+  document.getElementById('txAmount').value = '';
+  document.getElementById('txDesc').value = '';
+  document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('addTxOverlay').classList.add('active');
+  setTimeout(() => document.getElementById('txAmount').focus(), 300);
+}
+
+function setTxType(type) {
+  currentTxType = type;
+  document.getElementById('typeSent').classList.toggle('active', type === 'sent');
+  document.getElementById('typeReceived').classList.toggle('active', type === 'received');
+}
+
+function addTransaction() {
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  if (!amount || amount <= 0) return;
+  const p = data.persons.find(x => x.id === currentPersonId);
+  p.transactions.push({
+    id: Date.now().toString(),
+    type: currentTxType,
+    amount,
+    desc: document.getElementById('txDesc').value.trim(),
+    date: document.getElementById('txDate').value
+  });
+  save();
+  closeModal('addTxOverlay');
+  renderPersons();
+}
+
+function deleteTx(personId, txId) {
+  const p = data.persons.find(x => x.id === personId);
+  p.transactions = p.transactions.filter(t => t.id !== txId);
+  save();
+  renderPersons();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+function closeOverlay(event, id) {
+  if (event.target === document.getElementById(id)) closeModal(id);
+}
+
+// Enter pe câmpuri
+document.getElementById('personName').addEventListener('keydown', e => { if (e.key === 'Enter') addPerson(); });
+document.getElementById('txAmount').addEventListener('keydown', e => { if (e.key === 'Enter') addTransaction(); });
+
+renderPersons();
+</script>
+</body>
+</html>
